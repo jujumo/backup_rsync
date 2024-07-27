@@ -15,7 +15,7 @@ Install the `backup_rsync` module and the `backup_cli` tool using pip :
 [source,bash]
 ----
 $> cd to/backup_rsync
-$> pyhton -m pip install .
+$> python -m pip install .
 ----
 
 === test
@@ -218,9 +218,9 @@ Once the virtual env is activated you can continue installing the module in edit
 [source,bash]
 ----
 $> cd to/backup_rsync
-$> pyhton -m venv venv
+$> python -m venv venv
 $> source venv/bin/activate
-$> pyhton -m pip install -e .
+$> python -m pip install -e .
 ----
 
 
