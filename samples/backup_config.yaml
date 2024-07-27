@@ -1,0 +1,10 @@
+source.path: "/tmp/a"
+destination:
+  path:    "latest"
+  history: "%Y-%m-%d-%H-%M"
+  partial: "partial"
+logging:
+  actions:  "%Y-%m-%d-%H-%M/_log.txt"
+  progress: "%Y-%m-%d-%H-%M/_progress.txt"
+  errors:   "%Y-%m-%d-%H-%M/_errors.txt"
+exclude: ["@eaDir", "Thumbs.db"]

@@ -1,0 +1,246 @@
+= backup using rsync
+
+backup tool based on python warpped around rsync
+
+== install
+
+Requires: python 3.11, venv and rsync.
+
+
+=== backup_rsync module
+
+Install the `backup_rsync` module and the `backup_cli` tool using pip :
+
+.terminal
+[source,bash]
+----
+$> cd to/backup_rsync
+$> pyhton -m pip install .
+----
+
+=== test
+
+You can validate the module is behaving well using unit tests:
+
+.terminal
+[source,bash]
+----
+$> python -m unittest discover
+----
+
+== usage
+
+=== basic
+
+.terminal
+[source,bash]
+----
+$> mkdir /tmp/a /tmp/b && echo "sample" > /tmp/a/1     # make some dummy files
+$> backup_cli --source.path=/tmp/a --destination.path=/tmp/b/latest
+--------------------------------------------------------------------------------
+rsync                                                                           \
+        --checksum                                                              \
+        --compress                                                              \
+        --delete                                                                \
+        --delete-excluded                                                       \
+        --links                                                                 \
+        --one-file-system                                                       \
+        --progress                                                              \
+        --recursive                                                             \
+        --times                                                                 \
+        --update                                                                \
+        --verbose                                                               \
+    /tmp/a/                                                                     \
+    /tmp/b/latest/
+--------------------------------------------------------------------------------
+sending incremental file list
+created directory /tmp/b/latest
+./
+1
+             30 100%    0.00kB/s    0:00:00 (xfr#1, to-chk=0/2)
+
+sent 155 bytes  received 74 bytes  458.00 bytes/sec
+total size is 30  speedup is 0.13
+--------------------------------------------------------------------------------
+rsync finished with code 0.
+
+$> cat /tmp/b/latest/1
+sample
+----
+
+=== advanced: using config file
+
+Create a backup directory (e.g `/your/backup/`), where backup files and eventually log, history, ... will be saved.
+In this directory, create :
+
+ - `backup_config.yaml`: config file describing the backup policy (or the name that suits you),
+ - `backup.sh`: the script file triggering the backup operation
+
+.backup_config.yaml
+[source,yaml]
+----
+source.path: "/tmp/a"
+destination:
+  path:    "latest"
+  history: "%Y-%m-%d-%H-%M"
+  partial: "partial"
+logging:
+  actions:  "%Y-%m-%d-%H-%M/_log.txt"
+  progress: "%Y-%m-%d-%H-%M/_progress.txt"
+  errors:   "%Y-%m-%d-%H-%M/_errors.txt"
+exclude: ["@eaDir", "Thumbs.db"]
+----
+
+Note some paths are relative (e.g. `destination.path`) to the config file `backup_config.yaml`.
+
+.backup.sh
+[source,bash]
+----
+#!/bin/bash
+if [ -z ${BASH_SOURCE+x} ]; then SCRIPT_FILEPATH=${(%):-%N};
+else SCRIPT_FILEPATH=${BASH_SOURCE[0]}; fi
+SCRIPT_FILEPATH=$( realpath -P ${SCRIPT_FILEPATH} )
+SCRIPT_DIRPATH=$( dirname "${SCRIPT_FILEPATH}" )
+PYTHON_BIN_PATH="$(python3 -m site --user-base)/bin"
+
+${PYTHON_BIN_PATH}/backup_cli \
+  --config ${SCRIPT_DIRPATH}/backup_config.yaml \
+  $@
+----
+
+In a terminal, trigger the backup
+
+.terminal
+[source,bash]
+----
+$> chmod +x ./backup.sh           # make sure script is executable
+$> mkdir -p /tmp/a && date > /tmp/a/sample
+$> ./backup.sh debug              # will show the command line
+rsync                                                                           \
+        --backup                                                                \
+        --backup-dir=/tmp/tuto/2024-07-22-13-20/                                \
+        --checksum                                                              \
+        --compress                                                              \
+        --delete                                                                \
+        --delete-excluded                                                       \
+        --exclude=@eaDir                                                        \
+        --exclude=Thumbs.db                                                     \
+        --links                                                                 \
+        --log-file=/tmp/tuto/2024-07-22-13-20/_log.txt                          \
+        --one-file-system                                                       \
+        --partial                                                               \
+        --partial-dir=/tmp/tuto/partial/                                        \
+        --progress                                                              \
+        --recursive                                                             \
+        --times                                                                 \
+        --update                                                                \
+        --verbose                                                               \
+    /tmp/a/                                                                     \
+    /tmp/tuto/latest/                                                           \
+1> /tmp/tuto/2024-07-22-13-20/_progress.txt                                     \
+2> /tmp/tuto/2024-07-22-13-20/_errors.txt
+
+$> ./backup.sh --dryrun true    # will run rsync in dry-run mode will produce /tmp/tuto/2024-07-22-13-20/_log.txt
+$> cat /tmp/tuto/2024-07-22-13-20/_log.txt
+--------------------------------------------------------------------------------
+rsync                                                                           \
+        --backup                                                                \
+        --backup-dir=/tmp/tuto/2024-07-22-13-23/                                \
+        --checksum                                                              \
+        --compress                                                              \
+        --delete                                                                \
+        --delete-excluded                                                       \
+        --dry-run                                                               \
+        --exclude=@eaDir                                                        \
+        --exclude=Thumbs.db                                                     \
+        --itemize-changes                                                       \
+        --links                                                                 \
+        --log-file=/tmp/tuto/2024-07-22-13-23/_log.txt                          \
+        --one-file-system                                                       \
+        --partial                                                               \
+        --partial-dir=/tmp/tuto/partial/                                        \
+        --progress                                                              \
+        --recursive                                                             \
+        --times                                                                 \
+        --update                                                                \
+        --verbose                                                               \
+    /tmp/a/                                                                     \
+    /tmp/tuto/latest/                                                           \
+1> /tmp/tuto/2024-07-22-13-23/_progress.txt                                     \
+2> /tmp/tuto/2024-07-22-13-23/_errors.txt
+--------------------------------------------------------------------------------
+2024/07/22 13:23:36 [521933] building file list
+2024/07/22 13:23:36 [521933] created directory /tmp/tuto/latest
+2024/07/22 13:23:36 [521933] cd+++++++++ ./
+2024/07/22 13:23:36 [521933] sent 88 bytes  received 61 bytes  298.00 bytes/sec
+2024/07/22 13:23:36 [521933] total size is 30  speedup is 0.20 (DRY RUN)
+--------------------------------------------------------------------------------
+rsync finished with code 0.
+
+$> ./backup.sh # will actually do the backup
+
+$> mkdir -p /tmp/a && date > /tmp/a/sample
+$> ./backup.sh # will save previous version of sample
+
+$> tree -L 2      # add the end, the backup dir, looks like :
+.
+├── 2024-07-22-13-20
+│   └── _log.txt
+├── 2024-07-22-13-26
+│   ├── _log.txt
+│   └── sample     # Mon 22 Jul 13:19:09 CEST 2024
+├── backup_config.yaml
+├── backup.sh
+└── latest
+    └── sample     # Mon 22 Jul 13:25:59 CEST 2024
+----
+
+During processing, you might notice 2 additional log files: `_errors.txt` and `_progress.txt`.
+`_progress.txt` is removed at the end. It is just here to monitor the progress of the copy.
+`_errors.txt` is deleted at the end only if empty.
+
+.file structure
+----
+├── 2024-07-22-13-26
+│   ├── _errors.txt
+│   ├── _log.txt
+│   ├── _progress.txt
+│   └── sample
+----
+
+== Develop
+
+Use a virtual environment to isolate the tool. 
+To install a virtual environment, you can use `venv`.
+Once the virtual env is activated you can continue installing the module in edit mode:
+
+.terminal
+[source,bash]
+----
+$> cd to/backup_rsync
+$> pyhton -m venv venv
+$> source venv/bin/activate
+$> pyhton -m pip install -e .
+----
+
+
+== Automate
+
+Automate the backup using `anacron` (make sure it is installed) :
+
+./etc/cron.daily/backup
+[source,bash]
+----
+#!/bin/sh
+set -e # dont hang on error
+(
+    # this avoid trigger multiple concurrent instances
+    flock --nonblock 9 || exit 1
+    /sbin/runuser  username -c 'echo "$( date ) backuping" >> $HOME/crontablog.txt'
+    /sbin/runuser  username -c '/path/to/backup.sh'
+) 9>/var/lock/backup_rsync
+----
+
+Note, the (ana)cron script should NOT be named with `.sh` extension.
+
+On synology, use the had-hoc Task manager.

@@ -1,0 +1,8 @@
+source.path: "example/a"
+destination.path: "example/b/latest"
+exclude: ["@eaDir", "thumbs.db"]
+logging:
+  actions: "example/b/log.txt"
+  progress: "example/b/progress.txt"
+  errors: "example/b/errors.txt"
+

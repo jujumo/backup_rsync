@@ -1,0 +1,6 @@
+.idea/
+backup_rsync.egg-info/
+*/__pycache__/
+.venv/
+venv/
+build/

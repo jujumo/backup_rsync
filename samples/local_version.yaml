@@ -1,0 +1,6 @@
+source.path: "/tmp/a"
+destination:
+  path: "/tmp/b/latest"
+  history: "/tmp/b/%Y-%m-%d-%H-%M"
+logfile: "/tmp/b/%Y-%m-%d-%H-%M/_log.txt"
+exclude : ["@eaDir", "thumbs.db"]

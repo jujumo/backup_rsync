@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "backup_rsync"
+description = "Utility tool to do backup (incremental or clone) using rsync."
+version="2024.07.alpha"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "jumo", email = "jujumo@gmail.com"}, ]
+
+dependencies = [ "pyyaml","jsonargparse", "jsonschema"]
+
+[tool.setuptools]
+packages = ["backup_rsync"]
+
+[project.scripts]
+backup_cli = "backup_rsync.backup:main_cli"

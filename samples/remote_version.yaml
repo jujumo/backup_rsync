@@ -1,0 +1,16 @@
+source:
+  path: "/tmp/a"
+  remote: True
+destination:
+  path: "/tmp/b/latest"
+  history: "/tmp/b/%Y-%m-%d-%H-%M"
+  partial: "/tmp/b/partial"
+
+logfile: "/tmp/b/%Y-%m-%d-%H-%M/_log.txt"
+server :
+  url : "NAS"
+  port : 22
+  username : "user"
+  keyfile : "/homes/user/.ssh/id_rsa"
+
+exclude : ["@eaDir", "thumbs.db"]
