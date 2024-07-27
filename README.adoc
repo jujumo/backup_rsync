@@ -1,11 +1,19 @@
 = backup using rsync
 
-backup tool based on python warpped around rsync
+A backup tool written in Python that wraps around rsync
 
 == install
 
-Requires: python 3.11, venv and rsync.
+First, ensure you have the necessary requirements: `Python3.11` and `rsync`.
 
+.terminal
+[source,bash]
+----
+$> python --version
+Python 3.11.2   # or newer
+$> which rsync
+/usr/bin/rsync  # or any other path
+----
 
 === backup_rsync module
 
@@ -14,28 +22,49 @@ Install the `backup_rsync` module and the `backup_cli` tool using pip :
 .terminal
 [source,bash]
 ----
-$> cd to/backup_rsync
+$> cd backup_rsync
 $> python -m pip install .
 ----
 
-=== test
-
-You can validate the module is behaving well using unit tests:
+You can check `backup_cli` is accessible within `$PATH`:
 
 .terminal
 [source,bash]
 ----
+$> backup_cli --help
+# should work, if not, try :
+$> $(python3 -m site --user-base)/bin/backup_cli --help
+----
+
+=== test
+
+After installation, you can verify the module's functionality by running unit tests:
+
+.terminal
+[source,bash]
+----
+$> cd backup_rsync  # if not there yet.
 $> python -m unittest discover
 ----
 
 == usage
 
-=== basic
+=== Hello World
+
+As a straightforward example, let's consider copying the directory `/tmp/a` to `/tmp/b`.
+For this example, let's create a mock folder.
 
 .terminal
 [source,bash]
 ----
-$> mkdir /tmp/a /tmp/b && echo "sample" > /tmp/a/1     # make some dummy files
+$> mkdir /tmp/a /tmp/b && echo "sample" > /tmp/a/1     # make mock file
+----
+
+Then you can run `backup_cli` with the following options:
+
+.terminal
+[source,bash]
+----
 $> backup_cli --source.path=/tmp/a --destination.path=/tmp/b/latest
 --------------------------------------------------------------------------------
 rsync                                                                           \
